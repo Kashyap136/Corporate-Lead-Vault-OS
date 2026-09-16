@@ -1,13 +1,6 @@
 # Corporate Lead Vault OS
 
-A corporate lead management and digital-engagement platform (PRODUCT 03) built to the DEV-SHEET-03 specification. Captures leads from multiple channels, calculates solar ROI, generates mock SEO reports, issues a WhatsApp/SMS lead alert, honors DPDP 365-day data retention, and exports an ISO-auditor-ready Excel report.
-
-## Project Location
-
-- Root: `D:\Project 4`
-- Backend: `D:\Project 4\backend`
-- Frontend: `D:\Project 4\frontend`
-- Spec (authoritative): `D:\Project 4\DEV-SHEET-03-Corporate-Lead-Vault-OS.pdf`
+A corporate lead management and digital-engagement platform built to the DEV-SHEET-03 specification. Captures leads from multiple channels, calculates solar ROI, generates mock SEO reports, issues a WhatsApp/SMS lead alert, honors DPDP 365-day data retention, and exports an ISO-auditor-ready Excel report.
 
 ## Tech Stack
 
@@ -199,7 +192,6 @@ EMAIL_USER=...
 **1. Backend**
 
 ```bash
-cd D:\Project 4\backend
 npm install
 npm run seed     # seed demo company + 12 sample leads
 npm run dev      # starts on port 5000
@@ -208,7 +200,6 @@ npm run dev      # starts on port 5000
 **2. Frontend**
 
 ```bash
-cd D:\Project 4\frontend
 npm install
 npm run dev      # Next.js dev server; /api and /exports proxied to localhost:5000
 ```
