@@ -2,7 +2,146 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+      'Helvetica Neue', Arial, sans-serif;
+  }
+}
+
+@layer components {
+  /* ---------- Buttons ---------- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-transparent px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+  .btn-secondary {
+    @apply border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50;
+  }
+  .btn-success {
+    @apply bg-emerald-600 text-white hover:bg-emerald-700;
+  }
+  .btn-ghost {
+    @apply bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+  }
+  .btn-danger-ghost {
+    @apply bg-transparent text-red-600 hover:bg-red-50;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+  .btn-lg {
+    @apply px-5 py-2.5 text-base;
+  }
+  .btn-block {
+    @apply w-full;
+  }
+
+  /* ---------- Surfaces ---------- */
+  .card {
+    @apply rounded-lg border border-slate-200 bg-white shadow-sm;
+  }
+  .card-pad {
+    @apply p-6;
+  }
+
+  /* ---------- Forms ---------- */
+  .field {
+    @apply space-y-1.5;
+  }
+  .label {
+    @apply block text-sm font-medium text-slate-700;
+  }
+  .hint {
+    @apply mt-1 text-xs text-slate-500;
+  }
+  .input {
+    @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400;
+  }
+  .input:focus {
+    @apply border-blue-500 outline-none ring-2 ring-blue-100;
+  }
+  .input:disabled {
+    @apply bg-slate-50 text-slate-500;
+  }
+
+  /* ---------- Alerts ---------- */
+  .alert {
+    @apply rounded-md border px-4 py-3 text-sm;
+  }
+  .alert-error {
+    @apply border-red-200 bg-red-50 text-red-700;
+  }
+  .alert-success {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-700;
+  }
+  .alert-info {
+    @apply border-blue-200 bg-blue-50 text-blue-700;
+  }
+  .alert-warning {
+    @apply border-amber-200 bg-amber-50 text-amber-800;
+  }
+
+  /* ---------- Badges ---------- */
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  .badge-hot {
+    @apply bg-red-50 text-red-700 ring-1 ring-inset ring-red-200;
+  }
+  .badge-warm {
+    @apply bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200;
+  }
+  .badge-cold {
+    @apply bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200;
+  }
+  .badge-neutral {
+    @apply bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200;
+  }
+
+  /* ---------- Stats ---------- */
+  .stat-card {
+    @apply card p-5;
+  }
+  .stat-label {
+    @apply text-sm font-medium text-slate-500;
+  }
+  .stat-value {
+    @apply mt-1 text-3xl font-semibold tabular-nums tracking-tight text-slate-900;
+  }
+  .stat-hint {
+    @apply mt-1 text-xs text-slate-400;
+  }
+
+  /* ---------- Tables ---------- */
+  .table-wrap {
+    @apply overflow-x-auto;
+  }
+  .table {
+    @apply min-w-full text-sm;
+  }
+  .table thead th {
+    @apply bg-slate-50 px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500;
+  }
+  .table tbody td {
+    @apply whitespace-nowrap px-4 py-3 align-middle;
+  }
+  .table tbody tr {
+    @apply border-t border-slate-200 text-slate-600 transition-colors hover:bg-slate-50;
+  }
+
+  /* ---------- Loading ---------- */
+  .skeleton {
+    @apply animate-pulse rounded bg-slate-200;
+  }
 }

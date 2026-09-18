@@ -1,6 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import AppShell from '../../components/AppShell';
+import { Alert, Spinner } from '../../components/ui';
+import { authFetch } from '../../lib/api';
 
 export default function AuditPage() {
   const router = useRouter();
@@ -8,6 +11,7 @@ export default function AuditPage() {
   const [stats, setStats] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [exportUrl, setExportUrl] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -21,20 +25,29 @@ export default function AuditPage() {
 
   useEffect(() => {
     if (!company) return;
-    fetch(`/api/leads/stats?companyId=${company.id}`)
-      .then(res => res.json())
-      .then(data => setStats(data))
-      .catch(() => {});
+    authFetch(`/api/leads/stats?companyId=${company.id}`)
+      .then((res) => res.json())
+      .then((data) => setStats(data))
+      .catch(() => {
+        setError('Unable to load audit overview.');
+      });
   }, [company]);
 
   const handleExport = async () => {
     setExporting(true);
+    setError('');
+    setExportUrl('');
     try {
-      const res = await fetch(`/api/audit/export?companyId=${company.id}&year=2026`);
+      const res = await authFetch(`/api/audit/export?companyId=${company.id}&year=2026`);
       const data = await res.json();
-      setExportUrl(data.fileUrl);
+      if (!res.ok) {
+        setError(data.error || 'Export failed.');
+      } else {
+        setExportUrl(data.fileUrl);
+      }
     } catch (err) {
       console.error('Export failed');
+      setError('Export failed. Please try again.');
     }
     setExporting(false);
   };
@@ -44,66 +57,79 @@ export default function AuditPage() {
   const scorePercent = totalLeads > 0 ? ((validLeads / totalLeads) * 100).toFixed(0) : 0;
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow p-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold">Audit</h1>
-        <div className="flex gap-4 items-center">
-          <a href="/dashboard" className="text-blue-600 hover:underline text-sm">Dashboard</a>
-          <a href="/leads" className="text-blue-600 hover:underline text-sm">Leads</a>
-          <a href="/roi-calc" className="text-blue-600 hover:underline text-sm">ROI Calc</a>
-          <a href="/seo" className="text-blue-600 hover:underline text-sm">SEO</a>
-          <button
-            onClick={() => { localStorage.clear(); router.push('/login'); }}
-            className="text-red-600 hover:underline text-sm"
-          >
-            Logout
+    <AppShell
+      title="ISO Audit Export"
+      subtitle="Export a DPDP-compliant audit workbook for your ISO auditor."
+    >
+      {error && (
+        <div className="mb-4">
+          <Alert tone="error">{error}</Alert>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="stat-card border-l-4 border-l-blue-500">
+          <p className="stat-label">Audit Status</p>
+          {stats ? (
+            <p className="mt-1 text-lg font-semibold text-slate-900">Audit ready</p>
+          ) : (
+            <div className="skeleton mt-2 h-5 w-24" />
+          )}
+          <p className="stat-hint">Data available for export</p>
+        </div>
+
+        <div className="stat-card border-l-4 border-l-emerald-500">
+          <p className="stat-label">Lead Score</p>
+          {stats ? (
+            <p className="stat-value">{scorePercent}%</p>
+          ) : (
+            <div className="skeleton mt-2 h-8 w-16" />
+          )}
+          <p className="stat-hint">
+            {stats ? `${validLeads} of ${totalLeads} leads validated` : 'Loading…'}
+          </p>
+        </div>
+
+        <div className="stat-card border-l-4 border-l-emerald-500">
+          <p className="stat-label">DPDP Compliance</p>
+          {stats ? (
+            <p className="stat-value">100%</p>
+          ) : (
+            <div className="skeleton mt-2 h-8 w-16" />
+          )}
+          <p className="stat-hint">Data handled per DPDP requirements</p>
+        </div>
+      </div>
+
+      <div className="card mt-6 p-5 sm:p-6">
+        <h2 className="text-base font-semibold text-slate-900">Export audit workbook</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Generated workbook covers the current year and includes a 365-day retention log.
+        </p>
+
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <button onClick={handleExport} className="btn btn-primary" disabled={exporting}>
+            {exporting && <Spinner className="h-4 w-4 border-slate-200 border-t-transparent" />}
+            {exporting ? 'Exporting…' : 'Export for ISO Auditor Excel'}
           </button>
         </div>
-      </nav>
 
-      <div className="p-6 max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-6">ISO Audit Export</h2>
-
-          <div className="grid grid-cols-3 gap-6 mb-6">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-gray-500">Audit Status</p>
-              <p className="text-xl font-bold text-blue-600">audit ready</p>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <p className="text-sm text-gray-500">Score</p>
-              <p className="text-xl font-bold text-green-600">{scorePercent}%</p>
-              <p className="text-xs text-gray-400">{validLeads}/{totalLeads} * 100</p>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <p className="text-sm text-gray-500">DPDP Compliance</p>
-              <p className="text-xl font-bold text-green-600">100%</p>
-            </div>
-          </div>
-
-          <button
-            onClick={handleExport}
-            disabled={exporting}
-            className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 disabled:bg-blue-400 transition font-medium"
-          >
-            {exporting ? 'Exporting...' : 'Export for ISO Auditor Excel'}
-          </button>
-
-          {exportUrl && (
-            <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-              <p className="text-sm text-green-800 mb-2">Export generated successfully!</p>
+        {exportUrl && (
+          <div className="alert alert-success mt-4">
+            <div>
+              <p className="text-sm font-medium">Export generated successfully!</p>
               <a
                 href={exportUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline text-sm font-medium"
+                className="text-sm font-medium text-blue-700 underline hover:text-blue-800"
               >
                 Download audit-2026.xlsx
               </a>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-    </div>
+    </AppShell>
   );
 }

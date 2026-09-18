@@ -1,17 +1,42 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const ROIcalc = require('../models/ROIcalc');
 const Lead = require('../models/Lead');
+const Company = require('../models/Company');
+const { requireAuth, optionalAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.post('/calculate', async (req, res) => {
+router.post('/calculate', optionalAuth, async (req, res) => {
   try {
-    const { companyId, factoryArea, powerBill, manpower, currentCost, name, phone, email } = req.body;
+    const factoryArea = Number(req.body.factoryArea);
+    const powerBill = Number(req.body.powerBill);
+    const manpower = Number(req.body.manpower);
+    const currentCost = Number(req.body.currentCost);
+
+    if (![factoryArea, powerBill, manpower, currentCost].every(Number.isFinite)) {
+      return res.status(400).json({ error: 'Factory area, power bill, manpower and current cost are required numeric inputs' });
+    }
+
+    // Authenticated callers use their own identity; anonymous public callers
+    // (public calculator) supply the target company id.
+    const companyId = req.companyId || String(req.body.companyId || '');
+    if (!mongoose.isValidObjectId(companyId)) {
+      return res.status(400).json({ error: 'Company is required' });
+    }
+
+    const company = await Company.findById(companyId);
+    if (!company) {
+      return res.status(400).json({ error: 'Company not found' });
+    }
 
     const savings = factoryArea * 0.2 + powerBill * 0.15;
     const roiPercent = currentCost > 0 ? (savings / currentCost) * 100 : 0;
 
     let leadId = null;
+    const name = String(req.body.name || '').trim();
+    const phone = String(req.body.phone || '').trim();
+
     if (companyId && name && phone) {
       const logRetentionUntil = new Date();
       logRetentionUntil.setDate(logRetentionUntil.getDate() + 365);
@@ -23,7 +48,7 @@ router.post('/calculate', async (req, res) => {
         companyId,
         name,
         phone,
-        email: email || '',
+        email: req.body.email ? String(req.body.email).trim() : '',
         source: 'ROIcalc',
         message,
         score,
@@ -43,17 +68,18 @@ router.post('/calculate', async (req, res) => {
 
     res.status(201).json({ roi, savings, roiPercent, leadId });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[roi.calculate]', err.message);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
-router.get('/list', async (req, res) => {
+router.get('/list', requireAuth, async (req, res) => {
   try {
-    const { companyId } = req.query;
-    const rois = await ROIcalc.find({ companyId }).sort({ createdAt: -1 });
+    const rois = await ROIcalc.find({ companyId: req.companyId }).sort({ createdAt: -1 });
     res.json(rois);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[roi.list]', err.message);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

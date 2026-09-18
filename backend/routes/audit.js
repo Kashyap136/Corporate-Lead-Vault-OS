@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
@@ -8,14 +9,18 @@ const router = express.Router();
 
 router.get('/export', async (req, res) => {
   try {
-    const { companyId, year } = req.query;
-    const targetYear = parseInt(year) || 2026;
+    const rawYear = req.query.year;
+    const targetYear = rawYear ? Number(rawYear) : 2026;
+
+    if (!Number.isInteger(targetYear) || targetYear < 2000 || targetYear > 2100) {
+      return res.status(400).json({ error: 'Invalid year. Provide a four-digit year between 2000 and 2100.' });
+    }
 
     const startDate = new Date(`${targetYear}-01-01`);
     const endDate = new Date(`${targetYear}-12-31T23:59:59`);
 
     const leads = await Lead.find({
-      companyId,
+      companyId: req.companyId,
       createdAt: { $gte: startDate, $lte: endDate }
     }).sort({ createdAt: -1 });
 
@@ -61,7 +66,8 @@ router.get('/export', async (req, res) => {
       year: targetYear
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[audit.export]', err.message);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const Lead = require('../models/Lead');
 
 const router = express.Router();
@@ -65,13 +66,21 @@ async function sendLeadAlert(leadId) {
 router.post('/lead-alert', async (req, res) => {
   try {
     const { leadId } = req.body;
-    const result = await sendLeadAlert(leadId);
-    if (result.error) {
-      return res.status(404).json(result);
+
+    if (!leadId || !mongoose.isValidObjectId(leadId)) {
+      return res.status(400).json({ error: 'Invalid lead id' });
     }
+
+    const lead = await Lead.findOne({ _id: leadId, companyId: req.companyId });
+    if (!lead) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+
+    const result = await sendLeadAlert(lead._id);
     res.json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[whatsapp.lead-alert]', err.message);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

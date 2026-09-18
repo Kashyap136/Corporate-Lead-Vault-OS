@@ -5,8 +5,6 @@ const router = express.Router();
 
 router.get('/report', async (req, res) => {
   try {
-    const { companyId } = req.query;
-
     const competitorDomains = ['competitor1.com', 'competitor2.com', 'competitor3.com'];
 
     const keywords = [
@@ -23,7 +21,7 @@ router.get('/report', async (req, res) => {
     ];
 
     const report = await SEOreport.create({
-      companyId,
+      companyId: req.companyId,
       domain: 'yourcompany.com',
       competitorDomains,
       rankingKeywords: keywords,
@@ -32,7 +30,8 @@ router.get('/report', async (req, res) => {
 
     res.json(report);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[seo.report]', err.message);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
